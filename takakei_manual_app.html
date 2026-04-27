@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAKAKEI DIALOG | インターンマニュアル</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f2f6;
+    --surface: #ffffff;
+    --surface2: #e8e8ee;
+    --accent: #d63651;
+    --accent2: #2ab5a8;
+    --dark: #1a1a2e;
+    --text: #111122;
+    --text-muted: #55556a;
+    --border: rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+    background: var(--dark); display: flex; flex-direction: column; z-index: 100;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-logo { padding: 26px 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo-main { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+  .sidebar-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px; padding: 13px 22px;
+    cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent;
+    font-size: 13px; color: rgba(255,255,255,0.5);
+  }
+  .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); }
+  .nav-item.active { color: #fff; border-left-color: var(--accent); background: rgba(214,54,81,0.15); font-weight: 600; }
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+  .sidebar-footer { padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .contact-card { background: rgba(255,255,255,0.07); border-radius: 10px; padding: 14px; }
+  .contact-label { color: rgba(255,255,255,0.4); font-size: 11px; margin-bottom: 3px; }
+  .contact-name { font-weight: 700; font-size: 17px; color: #fff; }
+  .contact-company { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .contact-line {
+    margin-top: 10px; display: inline-flex; align-items: center; gap: 6px;
+    background: #06C755; color: white; font-size: 11px; font-weight: 700;
+    padding: 5px 12px; border-radius: 20px;
+  }
+
+  /* MAIN */
+  .main { margin-left: 240px; min-height: 100vh; }
+  .topbar {
+    position: sticky; top: 0; background: rgba(242,242,246,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); padding: 13px 34px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 50;
+  }
+  .topbar-title { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-muted); letter-spacing: 0.12em; }
+  .topbar-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
+
+  /* SECTIONS */
+  .section { display: none; padding: 40px 34px; max-width: 800px; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .section-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.15em; margin-bottom: 7px; }
+  .section-title { font-size: 25px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .section-desc { color: var(--text-muted); font-size: 13px; line-height: 1.75; margin-bottom: 26px; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .card-body { font-size: 13px; color: var(--text-muted); line-height: 1.85; }
+
+  /* HIGHLIGHT */
+  .highlight { background: var(--dark); border-radius: 14px; padding: 22px 24px; margin-bottom: 18px; font-size: 14px; line-height: 1.9; color: #fff; }
+  .highlight strong { color: #ffd166; }
+  .highlight-icon { font-size: 20px; margin-bottom: 10px; }
+
+  /* TABLE */
+  .info-table { width: 100%; border-collapse: collapse; }
+  .info-table tr { border-bottom: 1px solid var(--border); }
+  .info-table tr:last-child { border-bottom: none; }
+  .info-table td { padding: 11px 4px; font-size: 13px; }
+  .info-table td:first-child { color: var(--text-muted); width: 130px; font-weight: 500; }
+  .info-table td:last-child { color: var(--text); }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; margin: 18px 0; }
+  .step { display: flex; cursor: pointer; }
+  .step-num-wrap { display: flex; flex-direction: column; align-items: center; width: 46px; flex-shrink: 0; }
+  .step-num {
+    width: 33px; height: 33px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+    color: var(--text-muted); transition: all 0.2s; flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  .step-line { width: 2px; background: var(--border); flex: 1; min-height: 14px; margin: 3px 0; }
+  .step-content { flex: 1; padding: 3px 0 18px 14px; }
+  .step-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .step-detail { font-size: 13px; color: var(--text-muted); line-height: 1.75; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s; opacity: 0; }
+  .step:hover .step-num, .step.open .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .step.open .step-detail { max-height: 200px; opacity: 1; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+  .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--text-muted); }
+  .chip.accent { background: rgba(214,54,81,0.08); border-color: rgba(214,54,81,0.22); color: var(--accent); font-weight: 500; }
+
+  /* FAQ */
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .faq-q { padding: 15px 17px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; color: var(--text); transition: background 0.2s; gap: 10px; }
+  .faq-q:hover { background: var(--surface2); }
+  .faq-arrow { font-size: 10px; color: var(--text-muted); transition: transform 0.3s; flex-shrink: 0; }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .faq-a-inner { padding: 14px 17px 17px; font-size: 13px; color: var(--text-muted); line-height: 1.85; border-top: 1px solid var(--border); }
+  .faq-item.open .faq-a { max-height: 300px; }
+
+  /* CHANNEL LINK */
+  .channel-link { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 17px 20px; text-decoration: none; transition: all 0.2s; margin: 14px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .channel-link:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(214,54,81,0.1); }
+  .yt-icon { width: 40px; height: 40px; background: #ff0000; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; color: white; }
+  .channel-info { flex: 1; }
+  .channel-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .channel-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .channel-arrow { color: var(--text-muted); }
+
+  /* MILESTONE */
+  .milestone-track { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .milestone-phase { flex: 1; padding: 16px 10px; text-align: center; border-right: 1px solid var(--border); transition: background 0.2s; }
+  .milestone-phase:last-child { border-right: none; }
+  .milestone-phase.done { background: rgba(42,181,168,0.06); }
+  .milestone-phase.current { background: rgba(214,54,81,0.05); }
+  .phase-badge { font-size: 10px; font-weight: 700; font-family: 'Space Mono', monospace; padding: 3px 8px; border-radius: 10px; display: inline-block; margin-bottom: 7px; }
+  .badge-done { background: rgba(42,181,168,0.15); color: var(--accent2); }
+  .badge-current { background: rgba(214,54,81,0.15); color: var(--accent); }
+  .badge-next { background: var(--surface2); color: var(--text-muted); }
+  .phase-label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .phase-period { font-size: 11px; color: var(--text-muted); }
+
+  .milestone-detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .milestone-row { display: flex; align-items: flex-start; gap: 14px; padding: 15px 18px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .milestone-row:last-child { border-bottom: none; }
+  .milestone-row:hover { background: var(--surface2); }
+  .milestone-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .dot-done { background: var(--accent2); }
+  .dot-current { background: var(--accent); }
+  .dot-next { background: #ccc; }
+  .milestone-content { flex: 1; }
+  .milestone-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .milestone-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.6; }
+  .milestone-tag { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; flex-shrink: 0; }
+  .tag-done { background: rgba(42,181,168,0.12); color: var(--accent2); }
+  .tag-current { background: rgba(214,54,81,0.12); color: var(--accent); }
+  .tag-next { background: var(--surface2); color: var(--text-muted); }
+
+  /* TIMECLOCK */
+  .task-select-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+  .task-select {
+    width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--text);
+    background: var(--surface); appearance: none; margin-bottom: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+
+  .clock-display {
+    background: var(--dark); border-radius: 16px; padding: 28px 24px;
+    text-align: center; margin-bottom: 14px; position: relative; overflow: hidden;
+  }
+  .clock-display::before { content:''; position:absolute; top:-40px; right:-40px; width:120px; height:120px; background:rgba(214,54,81,0.1); border-radius:50%; }
+  .clock-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; font-family: 'Space Mono', monospace; margin-bottom: 10px; }
+  .clock-time { font-size: 50px; font-family: 'Space Mono', monospace; font-weight: 700; color: #fff; line-height: 1; }
+  .clock-status { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+  .clock-status.working { color: #4ecdc4; }
+
+  .clock-btns { display: flex; gap: 10px; margin-bottom: 14px; }
+  .btn-clock { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; transition: all 0.2s; }
+  .btn-clock-in { background: var(--accent); color: #fff; }
+  .btn-clock-in:hover { background: #c0304a; }
+  .btn-clock-in:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-clock-out { background: var(--dark); color: #fff; }
+  .btn-clock-out:hover { background: #2a2a3e; }
+  .btn-clock-out:disabled { background: var(--surface2); color: #bbb; cursor: not-allowed; }
+
+  .month-summary { background: var(--dark); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .summary-label { font-size: 11px; color: rgba(255,255,255,0.45); }
+  .summary-value { font-size: 20px; font-family: 'Space Mono', monospace; font-weight: 700; color: #fff; margin-top: 3px; }
+  .summary-amount { font-size: 20px; font-family: 'Space Mono', monospace; font-weight: 700; color: #ffd166; margin-top: 3px; }
+
+  .log-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .log-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 7px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .log-task { font-size: 13px; font-weight: 600; color: var(--text); }
+  .log-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .log-right { display: flex; align-items: center; gap: 10px; }
+  .log-duration { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .log-delete { background: none; border: none; cursor: pointer; color: #bbb; font-size: 14px; padding: 3px 6px; border-radius: 6px; transition: all 0.2s; }
+  .log-delete:hover { background: #fee; color: var(--accent); }
+  .clear-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); font-size: 11px; padding: 4px 10px; border-radius: 8px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all 0.2s; }
+  .clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MOBILE */
+  .menu-toggle { display: none; position: fixed; bottom: 24px; right: 24px; width: 52px; height: 52px; background: var(--accent); border-radius: 50%; border: none; font-size: 20px; cursor: pointer; z-index: 200; box-shadow: 0 4px 20px rgba(214,54,81,0.35); color: white; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .section { padding: 26px 16px; }
+    .topbar { padding: 12px 16px; }
+    .menu-toggle { display: flex; align-items: center; justify-content: center; }
+    .overlay.open { display: block; }
+    .clock-time { font-size: 38px; }
+    .milestone-track { flex-direction: column; }
+    .milestone-phase { border-right: none; border-bottom: 1px solid var(--border); }
+    .milestone-phase:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-main">TAKAKEI DIALOG</div>
+    <div class="logo-sub">インターンマニュアル</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showSection('intro',this)"><span class="nav-icon">👋</span> はじめに</div>
+    <div class="nav-item" onclick="showSection('about',this)"><span class="nav-icon">📺</span> 番組について</div>
+    <div class="nav-item" onclick="showSection('milestone',this)"><span class="nav-icon">🗺️</span> マイルストーン</div>
+    <div class="nav-item" onclick="showSection('flow',this)"><span class="nav-icon">🔄</span> 仕事の流れ</div>
+    <div class="nav-item" onclick="showSection('rules',this)"><span class="nav-icon">💬</span> 連絡・ルール</div>
+    <div class="nav-item" onclick="showSection('timeclock',this)"><span class="nav-icon">⏱️</span> 打刻・勤怠</div>
+    <div class="nav-item" onclick="showSection('faq',this)"><span class="nav-icon">❓</span> よくある質問</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="contact-card">
+      <div class="contact-label">担当者</div>
+      <div class="contact-name">大和さん</div>
+      <div class="contact-company">株式会社群八</div>
+      <div class="contact-line">● LINE で連絡</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">INTERN MANUAL</span>
+    <span class="topbar-badge">3本目から参加</span>
+  </div>
+
+  <!-- はじめに -->
+  <section class="section active" id="intro">
+    <div class="section-num">01 — INTRO</div>
+    <h1 class="section-title">はじめに</h1>
+    <p class="section-desc">このマニュアルを読む前に、まずこれだけ知っておいてください。</p>
+
+    <div class="highlight">
+      <div class="highlight-icon">🎯</div>
+      仕事の進め方は<strong>あなたに任せます。</strong><br>
+      やりやすい方法・順番・ペースで進めてください。<br>
+      大和さんはその過程をサポートする立場です。
+    </div>
+
+    <div class="card">
+      <div class="card-title">📺 TAKAKEI DIALOGとは</div>
+      <div class="card-body">
+        高崎経済大学の学生のリアルを発信するYouTube動画・Podcast番組です。<br>
+        すでに<strong style="color:var(--accent)">2本公開済み</strong>で、あなたには<strong style="color:var(--accent)">3本目から</strong>関わってもらいます。
+      </div>
+    </div>
+
+    <a class="channel-link" href="https://youtube.com/channel/UCzjeRCvzBl-FDhPkCOswF1Q" target="_blank">
+      <div class="yt-icon">▶</div>
+      <div class="channel-info">
+        <div class="channel-name">TAKAKEI DIALOG — YouTubeチャンネル</div>
+        <div class="channel-desc">既存の2本を見て、番組の雰囲気をつかんでください</div>
+      </div>
+      <div class="channel-arrow">→</div>
+    </a>
+
+    <div class="card">
+      <div class="card-title">💡 最初にやってみてほしいこと</div>
+      <div class="card-body">
+        チャンネルの既存動画を見て、「次はこんな人に話を聞いてみたい」「こういう編集にしてみたい」など、自由に考えてみてください。<br><br>
+        正解はありません。あなたが面白いと思う方向で進めましょう。
+      </div>
+    </div>
+  </section>
+
+  <!-- 番組について -->
+  <section class="section" id="about">
+    <div class="section-num">02 — ABOUT</div>
+    <h1 class="section-title">番組について</h1>
+    <p class="section-desc">TAKAKEI DIALOGの基本情報です。</p>
+    <div class="card">
+      <table class="info-table">
+        <tr><td>番組名</td><td><strong>TAKAKEI DIALOG</strong></td></tr>
+        <tr><td>テーマ</td><td>高崎経済大学の学生のリアルを発信</td></tr>
+        <tr><td>形式</td><td>YouTube動画 ＋ Podcast（両方公開）</td></tr>
+        <tr><td>収録場所</td><td>高崎経済大学・周辺の収録可能なスペース</td></tr>
+        <tr><td>使用ソフト</td><td>Wondershare Filmora</td></tr>
+        <tr><td>公開状況</td><td>2本公開済み → 3本目からあなたが担当</td></tr>
+        <tr><td>時給</td><td>1,500円（翌月20日払い）</td></tr>
+        <tr><td>交通費</td><td>収録来場時の実費支給</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂️ 月の業務イメージ</div>
+      <div class="card-body" style="margin-bottom:12px;">これはあくまで参考。進め方はあなたが決めてOKです。</div>
+      <div class="chips">
+        <span class="chip">企画・リサーチ 1h</span>
+        <span class="chip">アポ取り 1h</span>
+        <span class="chip">インタビュー準備 2h</span>
+        <span class="chip accent">収録 3h ← 大和さんも同席</span>
+        <span class="chip">動画編集 3h</span>
+        <span class="chip">サムネ・字幕 2h</span>
+        <span class="chip">音声編集(Podcast) 2h</span>
+        <span class="chip">SNS投稿 1h</span>
+        <span class="chip">MTG・相談 随時</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- マイルストーン -->
+  <section class="section" id="milestone">
+    <div class="section-num">03 — MILESTONE</div>
+    <h1 class="section-title">マイルストーン</h1>
+    <p class="section-desc">インターン期間全体の流れです。今どのフェーズにいるか確認してください。</p>
+
+    <div class="milestone-track">
+      <div class="milestone-phase done">
+        <div class="phase-badge badge-done">DONE</div>
+        <div class="phase-label">準備</div>
+        <div class="phase-period">契約〜参加</div>
+      </div>
+      <div class="milestone-phase current">
+        <div class="phase-badge badge-current">NOW</div>
+        <div class="phase-label">制作</div>
+        <div class="phase-period">3本目を作る</div>
+      </div>
+      <div class="milestone-phase">
+        <div class="phase-badge badge-next">NEXT</div>
+        <div class="phase-label">発信</div>
+        <div class="phase-period">公開・SNS</div>
+      </div>
+      <div class="milestone-phase">
+        <div class="phase-badge badge-next">FUTURE</div>
+        <div class="phase-label">継続</div>
+        <div class="phase-period">4本目以降</div>
+      </div>
+    </div>
+
+    <div class="milestone-detail-card">
+      <div class="milestone-row">
+        <div class="milestone-dot dot-done"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">契約書の締結</div>
+          <div class="milestone-sub">業務委託契約書にサイン・保管</div>
+        </div>
+        <span class="milestone-tag tag-done">完了</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-done"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">キックオフMTG</div>
+          <div class="milestone-sub">番組の雰囲気・進め方の確認。既存2本を視聴</div>
+        </div>
+        <span class="milestone-tag tag-done">完了</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-done"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">LINEグループ参加</div>
+          <div class="milestone-sub">大和さんとのやり取り開始</div>
+        </div>
+        <span class="milestone-tag tag-done">完了</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-current"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">3本目のインタビュー相手を探す</div>
+          <div class="milestone-sub">取り上げたい学生をリサーチ・候補をLINEで共有</div>
+        </div>
+        <span class="milestone-tag tag-current">進行中</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-next"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">アポ取り・収録日程の調整</div>
+          <div class="milestone-sub">インタビュー相手に依頼・日程確定</div>
+        </div>
+        <span class="milestone-tag tag-next">これから</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-next"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">インタビュー収録</div>
+          <div class="milestone-sub">高崎経済大学または周辺スペース。大和さんも同席</div>
+        </div>
+        <span class="milestone-tag tag-next">これから</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-next"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">動画・音声編集</div>
+          <div class="milestone-sub">Filmoraで編集。粗編集できたら大和さんに共有</div>
+        </div>
+        <span class="milestone-tag tag-next">これから</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-next"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">YouTube・Podcast 公開</div>
+          <div class="milestone-sub">サムネイル・概要欄・Podcast音源をアップ</div>
+        </div>
+        <span class="milestone-tag tag-next">これから</span>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-dot dot-next"></div>
+        <div class="milestone-content">
+          <div class="milestone-title">SNS告知</div>
+          <div class="milestone-sub">公開に合わせてSNSで発信</div>
+        </div>
+        <span class="milestone-tag tag-next">これから</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 仕事の流れ -->
+  <section class="section" id="flow">
+    <div class="section-num">04 — WORKFLOW</div>
+    <h1 class="section-title">仕事の流れ</h1>
+    <p class="section-desc">タップすると詳細が開きます。順番や方法はあなた次第です。</p>
+    <div class="steps">
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">1</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">企画・リサーチ</div><div class="step-detail">次に取り上げたい学生・テーマを自由に考えます。既存の2本も参考に。候補が浮かんだらLINEで気軽に共有を。一緒に考えます。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">2</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">アポイント</div><div class="step-detail">SNSのDM・直接声かけ・友人経由など、やりやすい方法でOK。依頼文は一緒に考えることもできます。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">3</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">インタビュー準備</div><div class="step-detail">「これを聞いてみたい」という自分の興味から質問を作ってください。事前にシェアしてもらえればフィードバックします（必須ではありません）。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">4</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">収録　← 大和さんも同席</div><div class="step-detail">高崎経済大学または周辺スペースで実施。大和さんも一緒にいるので、一人で全部回さなくて大丈夫。雑談の延長くらいの感覚で。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">5</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">動画編集（YouTube）</div><div class="step-detail">Wondershare Filmoraで編集。スタイルはあなたに任せます。粗編集できたらLINEで共有してもらえれば一緒に確認できます。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">6</div><div class="step-line"></div></div>
+        <div class="step-content"><div class="step-label">音声編集（Podcast）</div><div class="step-detail">動画から音声を書き出してPodcast用に整えます。Filmoraで音量・ノイズを調整。操作がわからなければいつでも相談を。</div></div>
+      </div>
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num-wrap"><div class="step-num">7</div></div>
+        <div class="step-content"><div class="step-label">SNS告知・公開</div><div class="step-detail">文章のスタイルや投稿タイミングもあなたのセンスで。公開前に一度共有してもらえれば確認します。</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 連絡・ルール -->
+  <section class="section" id="rules">
+    <div class="section-num">05 — COMMUNICATION</div>
+    <h1 class="section-title">連絡・ルール</h1>
+    <p class="section-desc">基本的なコミュニケーションについてです。</p>
+    <div class="highlight">
+      <div class="highlight-icon">📱</div>
+      「こんなこと聞いていいのかな」と思うことほど<br>
+      <strong>気軽にLINEしてください。</strong><br>
+      進捗報告も「やってます」の一言でOKです。
+    </div>
+    <div class="card">
+      <div class="card-title">📋 基本のこと</div>
+      <table class="info-table">
+        <tr><td>連絡手段</td><td>LINE</td></tr>
+        <tr><td>返信目安</td><td>24時間以内（お互いに）</td></tr>
+        <tr><td>MTG</td><td>月1回程度、オンラインで軽く</td></tr>
+        <tr><td>締め切り</td><td>間に合わなそうなら早めに一言を</td></tr>
+        <tr><td>学業優先</td><td>試験・授業と重なったら気軽に相談を</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">🆘 こんな時はすぐLINEを</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>アポが取れない・断られた</span></div>
+        <div style="display:flex;gap:10px;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>編集ソフトの操作がわからない</span></div>
+        <div style="display:flex;gap:10px;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>スケジュールが合わない</span></div>
+        <div style="display:flex;gap:10px;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>なんとなくモヤモヤしている</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 打刻 -->
+  <section class="section" id="timeclock">
+    <div class="section-num">06 — TIME TRACKING</div>
+    <h1 class="section-title">打刻・勤怠</h1>
+    <p class="section-desc">作業の開始・終了を記録します。月末に大和さんにLINEで共有してください。</p>
+
+    <div class="task-select-label">作業内容を選択</div>
+    <select class="task-select" id="taskSelect">
+      <option>企画・リサーチ</option>
+      <option>アポイント</option>
+      <option>インタビュー準備</option>
+      <option>インタビュー収録</option>
+      <option>動画編集</option>
+      <option>サムネイル・字幕作成</option>
+      <option>音声編集（Podcast）</option>
+      <option>SNS投稿</option>
+      <option>MTG・相談</option>
+      <option>その他</option>
+    </select>
+
+    <div class="clock-display">
+      <div class="clock-label">ELAPSED TIME</div>
+      <div class="clock-time" id="clockDisplay">00:00:00</div>
+      <div class="clock-status" id="clockStatus">待機中</div>
+    </div>
+
+    <div class="clock-btns">
+      <button class="btn-clock btn-clock-in" id="btnIn" onclick="clockIn()">▶ 開始</button>
+      <button class="btn-clock btn-clock-out" id="btnOut" onclick="showMemo()" disabled>■ 終了・記録</button>
+    </div>
+
+    <div id="memoArea" style="display:none; margin-bottom:14px;">
+      <div class="task-select-label" style="margin-bottom:6px;">作業メモ（やったこと・気づきなど）</div>
+      <textarea id="memoInput" placeholder="例）候補者3人リストアップ。Aさんに来週連絡してみる。" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--text);background:var(--surface);resize:vertical;min-height:90px;line-height:1.7;"></textarea>
+      <button class="btn-clock btn-clock-in" onclick="clockOut()" style="margin-top:8px;width:100%;">✓ 保存する</button>
+    </div>
+
+    <div class="month-summary">
+      <div>
+        <div class="summary-label">今月の合計時間</div>
+        <div class="summary-value" id="totalHours">0h 0m</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="summary-label">今月の報酬目安</div>
+        <div class="summary-amount" id="totalAmount">¥0</div>
+      </div>
+    </div>
+
+    <div class="log-title">
+      作業ログ
+      <button class="clear-btn" onclick="clearLog()">全削除</button>
+    </div>
+    <div id="logList"></div>
+    <div id="emptyLog" style="text-align:center;color:var(--text-muted);font-size:13px;padding:24px 0;">まだ記録がありません</div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="section-num">07 — FAQ</div>
+    <h1 class="section-title">よくある質問</h1>
+    <p class="section-desc">タップすると回答が開きます。</p>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">どんな学生をインタビューすればいいですか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">正解はありません。あなたが「話を聞いてみたい」と思う人がベストです。既存の2本も参考に。候補が浮かんだらLINEで共有を。</div></div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">編集ソフト（Filmora）が使えないのですが…<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">全然OK。YouTubeの解説動画が豊富にあるのでまず見てみてください。それでもわからなければLINEで。一緒に確認します。</div></div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">作業時間はどうやって記録すればいいですか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">このアプリの「打刻・勤怠」ページを使ってください。月末に大和さんにLINEで共有してもらえればOKです。</div></div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">大学の授業や試験と重なったら？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">学業優先でOKです。早めにLINEで教えてもらえれば一緒にスケジュールを調整します。</div></div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">インタビューの依頼文、自分で考えなきゃいけませんか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">一緒に考えます。「こういう人に声をかけたい」とLINEしてもらえれば、文面のアドバイスや一緒に作ることもできます。</div></div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">何かわからないことがあったら誰に聞けばいいですか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><div class="faq-a-inner">大和さんにLINEしてください。どんな小さいことでも相談してください。</div></div>
+    </div>
+
+    <div style="margin-top:36px;text-align:center;">
+      <div style="font-size:20px;margin-bottom:10px;">✨</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.9;">
+        正解はありません。<br>
+        あなたがやってみたいと思う方向で進めてください。<br>
+        私たちはその後ろにいます。
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<script>
+  function showSection(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+    closeSidebar();
+    if (id === 'timeclock') renderLog();
+  }
+  function toggleStep(el) { el.classList.toggle('open'); }
+  function toggleFaq(el) { el.classList.toggle('open'); }
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  // TIME TRACKING
+  let interval = null, startTime = null;
+  let logs = [];
+
+  const pad = n => String(n).padStart(2,'0');
+
+  function fmt(ms) {
+    const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
+    return `${pad(h)}:${pad(m)}:${pad(sc)}`;
+  }
+  function fmtShort(ms) {
+    const m = Math.floor(ms/60000), h = Math.floor(m/60), mm = m%60;
+    return h > 0 ? `${h}h ${mm}m` : `${mm}m`;
+  }
+
+  async function saveLogs() {
+    try { await window.storage.set('td_logs', JSON.stringify(logs)); } catch(e) {}
+  }
+
+  async function loadLogs() {
+    try {
+      const result = await window.storage.get('td_logs');
+      if (result && result.value) logs = JSON.parse(result.value);
+    } catch(e) { logs = []; }
+    renderLog();
+  }
+
+  function clockIn() {
+    startTime = Date.now();
+    document.getElementById('btnIn').disabled = true;
+    document.getElementById('btnOut').disabled = false;
+    document.getElementById('clockStatus').textContent = '作業中...';
+    document.getElementById('clockStatus').className = 'clock-status working';
+    interval = setInterval(() => {
+      document.getElementById('clockDisplay').textContent = fmt(Date.now() - startTime);
+    }, 1000);
+  }
+
+  let pendingEntry = null;
+
+  function showMemo() {
+    if (!startTime) return;
+    clearInterval(interval);
+    const duration = Date.now() - startTime;
+    const task = document.getElementById('taskSelect').value;
+    const now = new Date();
+    const date = `${now.getMonth()+1}/${now.getDate()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    pendingEntry = { task, duration, date, id: Date.now(), memo: '' };
+    document.getElementById('clockDisplay').textContent = fmtShort(duration);
+    document.getElementById('clockStatus').textContent = 'メモを書いて保存してください';
+    document.getElementById('clockStatus').className = 'clock-status';
+    document.getElementById('btnOut').disabled = true;
+    document.getElementById('memoInput').value = '';
+    document.getElementById('memoArea').style.display = 'block';
+    document.getElementById('memoInput').focus();
+  }
+
+  async function clockOut() {
+    if (!pendingEntry) return;
+    pendingEntry.memo = document.getElementById('memoInput').value.trim();
+    logs.unshift(pendingEntry);
+    await saveLogs();
+    pendingEntry = null;
+    startTime = null;
+    document.getElementById('clockDisplay').textContent = '00:00:00';
+    document.getElementById('clockStatus').textContent = '記録しました ✓';
+    document.getElementById('clockStatus').className = 'clock-status';
+    document.getElementById('btnIn').disabled = false;
+    document.getElementById('btnOut').disabled = true;
+    document.getElementById('memoArea').style.display = 'none';
+    document.getElementById('memoInput').value = '';
+    renderLog();
+    setTimeout(() => { document.getElementById('clockStatus').textContent = '待機中'; }, 2000);
+  }
+
+  async function deleteLog(id) {
+    logs = logs.filter(l => l.id !== id);
+    await saveLogs();
+    renderLog();
+  }
+
+  async function clearLog() {
+    if (!confirm('全ての記録を削除しますか？')) return;
+    logs = [];
+    await saveLogs();
+    renderLog();
+  }
+
+  function renderLog() {
+    const now = new Date();
+    const thisMonth = logs.filter(l => parseInt(l.date.split('/')[0]) === now.getMonth()+1);
+    const totalMs = thisMonth.reduce((s,l) => s+l.duration, 0);
+    const totalMin = Math.floor(totalMs/60000);
+    document.getElementById('totalHours').textContent = `${Math.floor(totalMin/60)}h ${totalMin%60}m`;
+    document.getElementById('totalAmount').textContent = `¥${Math.floor(totalMin/60*1500+(totalMin%60)/60*1500).toLocaleString()}`;
+
+    const list = document.getElementById('logList');
+    const empty = document.getElementById('emptyLog');
+    if (logs.length === 0) { list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    list.innerHTML = logs.map(l => `
+      <div class="log-item">
+        <div>
+          <div class="log-task">${l.task}</div>
+          <div class="log-date">${l.date}</div>
+        </div>
+        <div class="log-right">
+          <div class="log-duration">${fmtShort(l.duration)}</div>
+          <button class="log-delete" onclick="deleteLog(${l.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  loadLogs();
+</script>
+</body>
+</html>
